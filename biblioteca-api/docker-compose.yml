@@ -1,0 +1,12 @@
+services:
+  biblioteca-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: biblioteca-api
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    env_file:
+      - .env
+      - .env-local
+    restart: unless-stopped
