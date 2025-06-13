@@ -128,18 +128,27 @@ npm test
 
 📦 Exemplos de Uso com cURL
 
-# 1) Listar livros
-curl http://localhost:8080/api/books
-
-# 2) Criar livro
-curl -X POST http://localhost:8080/api/books \
+# Category
+# 1) Criar categoria
+curl -i -X POST http://localhost:8080/api/v1/categories \
   -H "Content-Type: application/json" \
-  -d '{
-        "title":"Clean Code",
-        "author":"Robert C. Martin",
-        "isbn":"978-0132350884",
-        "availableCopies":10
-      }'
+  -d '{"name":"História"}'
+
+# 2) Listar todas
+curl http://localhost:8080/api/v1/categories
+
+# 3) Buscar por ID
+curl http://localhost:8080/api/v1/categories/{UUID}
+
+# 4) Atualizar
+curl -i -X PUT http://localhost:8080/api/v1/categories/{UUID} \
+  -H "Content-Type: application/json" \
+  -d '{"name":"História do Brasil"}'
+
+# 5) Deletar
+curl -i -X DELETE http://localhost:8080/api/v1/categories/{UUID}
+
+
 
 
 🤝 Contribuindo

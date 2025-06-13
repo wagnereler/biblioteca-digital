@@ -11,17 +11,38 @@ import java.util.UUID;
 @Service
 public class CategoryService {
 
-    private final CategoryRepository categoryRepository;
+    private final CategoryRepository repo;
 
-    public CategoryService(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
-
-    public Optional<Category> findById(UUID id) {
-        return categoryRepository.findById(id);
+    public CategoryService(CategoryRepository repo) {
+        this.repo = repo;
     }
 
     public List<Category> findAll() {
-        return categoryRepository.findAll();
+        return repo.findAll();
+    }
+
+    public Optional<Category> findById(UUID id) {
+        return repo.findById(id);
+    }
+
+    public Category create(Category category) {
+        category.setId(null);
+        return repo.save(category);
+    }
+
+    public Optional<Category> update(UUID id, Category dados) {
+        return repo.findById(id).map(existing -> {
+            existing.setName(dados.getName());
+            return repo.save(existing);
+        });
+    }
+
+    public boolean delete(UUID id) {
+        return repo.findById(id)
+                .map(cat -> {
+                    repo.deleteById(id);
+                    return true;
+                })
+                .orElse(false);
     }
 }

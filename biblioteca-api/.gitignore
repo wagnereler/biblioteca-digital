@@ -38,4 +38,4 @@ build/
 /.env
 
 ### database ###
-/biblioteca-api/data/
+/data/

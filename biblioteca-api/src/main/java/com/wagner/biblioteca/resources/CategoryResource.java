@@ -5,31 +5,59 @@ import com.wagner.biblioteca.services.CategoryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/categories")
+@RequestMapping("/api/v1/categories")
 public class CategoryResource {
 
-    private final CategoryService categoryService;
+    private final CategoryService service;
 
-    public CategoryResource(CategoryService categoryService) {
-        this.categoryService = categoryService;
+    public CategoryResource(CategoryService service) {
+        this.service = service;
     }
 
-    /** GET /categories → lista todas as categorias */
+    /** GET  /api/v1/categories */
     @GetMapping
     public ResponseEntity<List<Category>> list() {
-        List<Category> categories = categoryService.findAll();
-        return ResponseEntity.ok(categories);
+        return ResponseEntity.ok(service.findAll());
     }
 
-    /** GET /categories/{id} → busca categoria por ID, ou 404 se não existir */
+    /** GET  /api/v1/categories/{id} */
     @GetMapping("/{id}")
-    public ResponseEntity<Category> findById(@PathVariable UUID id) {
-        return categoryService.findById(id)
+    public ResponseEntity<Category> getById(@PathVariable UUID id) {
+        return service.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** POST /api/v1/categories */
+    @PostMapping
+    public ResponseEntity<Category> create(@RequestBody Category category) {
+        Category saved = service.create(category);
+        URI location = URI.create("/api/v1/categories/" + saved.getId());
+        return ResponseEntity.created(location).body(saved);
+    }
+
+    /** PUT  /api/v1/categories/{id} */
+    @PutMapping("/{id}")
+    public ResponseEntity<Category> update(
+            @PathVariable UUID id,
+            @RequestBody Category dados) {
+
+        return service.update(id, dados)
+                .map(updated -> ResponseEntity.ok(updated))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** DELETE /api/v1/categories/{id} */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        boolean deleted = service.delete(id);
+        return deleted
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }
