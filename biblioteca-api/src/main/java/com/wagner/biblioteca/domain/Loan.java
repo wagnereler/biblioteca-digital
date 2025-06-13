@@ -1,4 +1,49 @@
 package com.wagner.biblioteca.domain;
 
-public class Loan {
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.EqualsAndHashCode.Include;
+import org.hibernate.annotations.GenericGenerator;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.UUID;
+
+@Entity
+@Table(name = "loan")
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Loan implements Serializable {
+
+    @Include
+    @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+            name = "UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
+    @Column(updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
+    private UUID id;
+
+    @Column(nullable = false)
+    private LocalDate loanDate;
+
+    @Column(nullable = false)
+    private LocalDate dueDate;
+
+    private LocalDate returnDate;
+
+    @Column(nullable = false)
+    private String status;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "book_id", nullable = false)
+    private Book book;
 }

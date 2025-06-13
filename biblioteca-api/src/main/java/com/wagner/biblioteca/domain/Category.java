@@ -1,51 +1,32 @@
 package com.wagner.biblioteca.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.EqualsAndHashCode.Include;
 import org.hibernate.annotations.GenericGenerator;
-import lombok.Getter;
-import lombok.Setter;
 
-import java.io.Serial;
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.UUID;
 
-@Getter
-@Setter
 @Entity
+@Table(name = "category")
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Category implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
 
+    @Include
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(
             name = "UUID",
             strategy = "org.hibernate.id.UUIDGenerator"
     )
-
+    @Column(updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
     private UUID id;
+
+    @Column(nullable = false)
     private String name;
-
-    public Category() {}
-
-    public Category(UUID id, String name) {
-        this.id   = id;
-        this.name = name;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Category)) return false;
-        Category other = (Category) o;
-        return Objects.equals(id, other.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
 }
