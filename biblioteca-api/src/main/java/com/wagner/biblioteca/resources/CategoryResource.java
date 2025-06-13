@@ -1,22 +1,35 @@
 package com.wagner.biblioteca.resources;
 
 import com.wagner.biblioteca.domain.Category;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.wagner.biblioteca.services.CategoryService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/categories")
 public class CategoryResource {
 
-    @GetMapping
-    public List<Category> list() {
-        Category cat1 = new Category(1, "Informática");
-        Category cat2 = new Category(2, "Direito");
+    private final CategoryService categoryService;
 
-        return Arrays.asList(cat1, cat2);
+    public CategoryResource(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
+
+    /** GET /categories → lista todas as categorias */
+    @GetMapping
+    public ResponseEntity<List<Category>> list() {
+        List<Category> categories = categoryService.findAll();
+        return ResponseEntity.ok(categories);
+    }
+
+    /** GET /categories/{id} → busca categoria por ID, ou 404 se não existir */
+    @GetMapping("/{id}")
+    public ResponseEntity<Category> findById(@PathVariable UUID id) {
+        return categoryService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

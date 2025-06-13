@@ -36,3 +36,6 @@ build/
 ### environment ###
 /.env-local
 /.env
+
+### database ###
+/biblioteca-api/data/
