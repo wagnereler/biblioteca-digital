@@ -18,9 +18,22 @@ public class BookResource {
         this.service = service;
     }
 
+    /**
+     * Se vier qualquer parâmetro de query, faz a busca “por contexto” (like ou exato em isbn);
+     * se não vier nenhum, retorna tudo.
+     *
+     * Exemplo de URL:
+     *  GET /api/v1/books?title=clean&author=martin
+     */
     @GetMapping
-    public ResponseEntity<List<Book>> list() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<Book>> list(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String isbn,
+            @RequestParam(name = "category", required = false) String categoryName
+    ) {
+        List<Book> result = service.search(title, author, isbn, categoryName);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")
