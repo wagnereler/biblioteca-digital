@@ -13,6 +13,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/loans")
 public class LoanResource {
+
     private final LoanService service;
 
     public LoanResource(LoanService service) {
@@ -39,17 +40,15 @@ public class LoanResource {
                 .body(loan);
     }
 
-    @PutMapping("/{id}/return")
-    public ResponseEntity<Loan> returnLoan(@PathVariable UUID id) {
-        Loan returned = service.returnLoan(id);
-        return ResponseEntity.ok(returned);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        return service.delete(id)
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+    /**
+     * Marca um empréstimo como devolvido:
+     * - só precisa do ID na URL
+     * - retorna 204 No Content (sem body)
+     */
+    @PatchMapping("/{id}/return")
+    public ResponseEntity<Void> returnLoan(@PathVariable UUID id) {
+        service.returnLoan(id);
+        return ResponseEntity.noContent().build();
     }
 
     // DTO interno para capturar memberId e bookId

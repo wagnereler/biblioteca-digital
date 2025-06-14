@@ -53,10 +53,11 @@ public class LoanService {
 
         book.setAvailableCopies(book.getAvailableCopies() - 1);
         bookRepo.save(book);
+        LocalDate today = LocalDate.now();
 
         Loan loan = Loan.builder()
-                .loanDate(LocalDate.now())
-                .dueDate(LocalDate.now().plusDays(14))
+                .loanDate(today)
+                .dueDate(today.plusDays(7))
                 .status("ACTIVE")
                 .member(member)
                 .book(book)
@@ -89,12 +90,4 @@ public class LoanService {
         return loan;
     }
 
-    public boolean delete(UUID id) {
-        return loanRepo.findById(id)
-                .map(l -> {
-                    loanRepo.delete(l);
-                    return true;
-                })
-                .orElse(false);
-    }
 }
