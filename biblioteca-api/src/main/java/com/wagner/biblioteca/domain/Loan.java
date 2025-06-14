@@ -1,5 +1,7 @@
 package com.wagner.biblioteca.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.EqualsAndHashCode.Include;
@@ -16,6 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Loan implements Serializable {
 
     @Include
@@ -39,11 +42,15 @@ public class Loan implements Serializable {
     @Column(nullable = false)
     private String status;
 
+    /** N → 1 com Member */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
+    @JsonBackReference(value = "member-loans")
     private Member member;
 
+    /** N → 1 com Book */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "book_id", nullable = false)
+    @JsonBackReference(value = "book-loans")
     private Book book;
 }

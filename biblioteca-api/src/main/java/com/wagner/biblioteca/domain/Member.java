@@ -1,5 +1,7 @@
 package com.wagner.biblioteca.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.EqualsAndHashCode.Include;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Member implements Serializable {
 
     @Include
@@ -37,8 +40,14 @@ public class Member implements Serializable {
 
     private String phone;
 
+    /**
+     * Agora indicamos ao JPA para NÃO inserir nem atualizar essa coluna,
+     * e na DDL definimos AUTO_INCREMENT para que o próprio H2 preencha.
+     */
     @Column(
+            name = "registration",
             nullable = false,
+            insertable = false,
             updatable = false,
             columnDefinition = "INT AUTO_INCREMENT"
     )
@@ -49,5 +58,6 @@ public class Member implements Serializable {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<Loan> loan = new ArrayList<>();
+    @JsonManagedReference(value = "member-loans")
+    private List<Loan> loans = new ArrayList<>();
 }

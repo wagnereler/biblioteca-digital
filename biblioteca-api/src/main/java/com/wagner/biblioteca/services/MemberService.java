@@ -1,12 +1,13 @@
 package com.wagner.biblioteca.services;
 
 import com.wagner.biblioteca.domain.Member;
+import com.wagner.biblioteca.dto.MemberDto;
 import com.wagner.biblioteca.repositories.MemberRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class MemberService {
@@ -17,28 +18,39 @@ public class MemberService {
         this.repo = repo;
     }
 
-    public List<Member> findAll() {
-        return repo.findAll();
+    public List<MemberDto> findAll() {
+        return repo.findAll().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
-    public Optional<Member> findById(UUID id) {
-        return repo.findById(id);
+    public MemberDto findById(UUID id) {
+        return repo.findById(id)
+                .map(this::toDto)
+                .orElse(null);
     }
 
-    public Member create(Member member) {
-        member.setId(null);
-        // registration é AUTO_INCREMENT no DB, não precisamos setar
-        return repo.save(member);
+    public MemberDto create(MemberDto dto) {
+        // monta a entidade a partir do DTO (id e registration ficam nulos)
+        Member member = Member.builder()
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .phone(dto.getPhone())
+                .build();
+        Member saved = repo.save(member);
+        return toDto(saved);
     }
 
-    public Optional<Member> update(UUID id, Member dto) {
+    public MemberDto update(UUID id, MemberDto dto) {
         return repo.findById(id)
                 .map(existing -> {
                     existing.setName(dto.getName());
                     existing.setEmail(dto.getEmail());
                     existing.setPhone(dto.getPhone());
-                    return repo.save(existing);
-                });
+                    Member updated = repo.save(existing);
+                    return toDto(updated);
+                })
+                .orElse(null);
     }
 
     public boolean delete(UUID id) {
@@ -48,5 +60,17 @@ public class MemberService {
                     return true;
                 })
                 .orElse(false);
+    }
+
+    // --- helpers de mapeamento ---
+
+    private MemberDto toDto(Member m) {
+        return new MemberDto(
+                m.getId(),
+                m.getName(),
+                m.getEmail(),
+                m.getPhone(),
+                m.getRegistration()
+        );
     }
 }
