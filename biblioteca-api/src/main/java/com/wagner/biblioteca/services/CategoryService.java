@@ -3,6 +3,7 @@ package com.wagner.biblioteca.services;
 import com.wagner.biblioteca.domain.Category;
 import com.wagner.biblioteca.repositories.CategoryRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +18,14 @@ public class CategoryService {
         this.repo = repo;
     }
 
-    public List<Category> findAll() {
+    /**
+     * Se name for fornecido, faz LIKE (ignore-case);
+     * se não, retorna todas as categorias.
+     */
+    public List<Category> findAll(String name) {
+        if (StringUtils.hasText(name)) {
+            return repo.findByNameContainingIgnoreCase(name);
+        }
         return repo.findAll();
     }
 

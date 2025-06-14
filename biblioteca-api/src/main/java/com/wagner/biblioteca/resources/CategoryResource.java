@@ -19,10 +19,16 @@ public class CategoryResource {
         this.service = service;
     }
 
-    /** GET  /api/v1/categories */
+    /**
+     * GET /api/v1/categories?name=xxx
+     * - se name for fornecido faz LIKE
+     * - se não, retorna todas
+     */
     @GetMapping
-    public ResponseEntity<List<Category>> list() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<Category>> list(
+            @RequestParam(name = "name", required = false) String name
+    ) {
+        return ResponseEntity.ok(service.findAll(name));
     }
 
     /** GET  /api/v1/categories/{id} */
