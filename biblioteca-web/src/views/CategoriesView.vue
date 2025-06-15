@@ -1,82 +1,70 @@
 <!-- src/views/CategoriesView.vue -->
+<!-- src/views/CategoriesView.vue -->
 <template>
   <section class="categories-view">
-    <!-- 1) Título -->
-    <h2>Categorias</h2>
+    <h1>Categorias</h1>
 
-    <!-- 2) Formulário + pesquisa (já concentrado no CategoryForm) -->
     <CategoryForm
         v-model="editingCategory"
         @saved="onSaved"
         @search="onFilter"
     />
 
-    <!-- 3) Controles de paginação -->
     <div class="controls">
-      <div class="page-size">
-        <label>Itens por página:</label>
-        <select v-model.number="pageSize" @change="loadCategories">
-          <option
-              v-for="opt in pageSizeOptions"
-              :key="opt"
-              :value="opt"
-          >{{ opt }}</option>
-        </select>
-      </div>
-      <div class="page-info">
-        Página {{ currentPage + 1 }} de {{ totalPages }}
-      </div>
+      <!-- ... page-size e page-info ... -->
     </div>
 
-    <!-- 4) Tabela -->
     <table class="categories-table">
-      <thead>
-      <tr>
-        <th class="col-description">Descrição</th>
-        <th class="col-id">ID</th>
-        <th class="col-actions">Ações</th>
-      </tr>
-      </thead>
+      <!-- ... cabeçalho ... -->
       <tbody>
       <tr v-for="cat in paginatedCategories" :key="cat.id">
-        <td class="col-description">{{ cat.name }}</td>
-        <td class="col-id">{{ cat.id }}</td>
+        <td>{{ cat.name }}</td>
+        <td>{{ cat.id }}</td>
         <td class="col-actions">
-          <button @click="edit(cat)"   title="Editar">✏️</button>
-          <button @click="remove(cat.id)" title="Excluir">🗑️</button>
+          <button @click="edit(cat)">✏️</button>
+          <button @click="askRemove(cat)">🗑️</button>
         </td>
       </tr>
       </tbody>
     </table>
 
-    <!-- 5) Pager à esquerda-->
     <div class="pager">
-      <button
-          :disabled="currentPage === 0"
-          @click="prevPage"
-      >‹ Anterior</button>
-      <button
-          :disabled="currentPage >= totalPages - 1"
-          @click="nextPage"
-      >Próximo ›</button>
+      <!-- ... botões de paginação ... -->
     </div>
+
+    <!-- o nosso modal de confirmação -->
+    <ConfirmModal
+        :visible="showConfirm"
+        title="Confirmação"
+        :message="`Ao excluir a categoria “${pendingName}” você removerá também todos os livros vinculados. Deseja prosseguir?`"
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        @confirm="removeConfirmed"
+        @cancel="showConfirm = false"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import CategoryForm from '@/components/CategoryForm.vue'
 import type { CategoryDto } from '@/types'
 import { getCategories, deleteCategory } from '@/services/api'
+import CategoryForm  from '@/components/CategoryForm.vue'
+import ConfirmModal  from '@/components/ConfirmModal.vue'
 
 const allCategories   = ref<CategoryDto[]>([])
 const editingCategory = ref<CategoryDto|undefined>()
 const filterName      = ref<string>('')
 
-// PAGINAÇÃO
-const pageSizeOptions = [10, 20, 50]
-const pageSize        = ref<number>(10)
-const currentPage     = ref<number>(0)
+// estados para o modal
+const showConfirm     = ref(false)
+const pendingId       = ref<string|undefined>()
+const pendingName     = ref<string>('')
+
+// PAGINAÇÃO (mesma lógica de antes)...
+const pageSizeOptions = [10,20,50]
+const pageSize        = ref(10)
+const currentPage     = ref(0)
 
 const totalPages = computed(() =>
     Math.ceil(allCategories.value.length / pageSize.value)
@@ -88,12 +76,9 @@ const paginatedCategories = computed(() => {
 })
 
 async function loadCategories() {
-  allCategories.value =
-      await getCategories(filterName.value || undefined)
-  // reajusta página se ultrapassar
-  if (currentPage.value >= totalPages.value) {
+  allCategories.value = await getCategories(filterName.value || undefined)
+  if (currentPage.value >= totalPages.value)
     currentPage.value = Math.max(0, totalPages.value - 1)
-  }
 }
 
 function onSaved() {
@@ -111,14 +96,28 @@ function edit(cat: CategoryDto) {
   editingCategory.value = cat
 }
 
-async function remove(id: string) {
-  if (!confirm('Ao excluir uma categoria você excluirá todos os livros relacionados! \nDeseja realmente excluir esta categoria?')) return
-  await deleteCategory(id)
-  loadCategories()
+// em vez de chamar delete direto, abrimos o modal
+function askRemove(cat: CategoryDto) {
+  pendingId.value   = cat.id
+  pendingName.value = cat.name
+  showConfirm.value = true
 }
 
-function prevPage() { if (currentPage.value > 0) currentPage.value-- }
-function nextPage() { if (currentPage.value < totalPages.value - 1) currentPage.value++ }
+// quando clicar em “Excluir” no modal
+async function removeConfirmed() {
+  showConfirm.value = false
+  if (!pendingId.value) return
+  await deleteCategory(pendingId.value)
+  loadCategories()
+  pendingId.value = undefined
+}
+
+function prevPage() {
+  if (currentPage.value > 0) currentPage.value--
+}
+function nextPage() {
+  if (currentPage.value < totalPages.value - 1) currentPage.value++
+}
 
 onMounted(loadCategories)
 </script>
