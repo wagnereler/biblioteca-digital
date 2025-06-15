@@ -1,0 +1,1 @@
+{"root":["./src/main.ts","./src/vite-env.d.ts","./src/router/index.ts","./src/services/api.ts","./src/types/index.ts","./src/App.vue","./src/components/BookForm.vue","./src/components/BookList.vue","./src/components/BookTable.vue","./src/components/HelloWorld.vue","./src/views/BooksView.vue"],"version":"5.8.3"}

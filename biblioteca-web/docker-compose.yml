@@ -1,0 +1,19 @@
+services:
+  biblioteca-web:
+    container_name: biblioteca-web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "${WEB_PORT}:${WEB_PORT}"
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - biblioteca-network
+
+networks:
+  biblioteca-network:
+    external: true

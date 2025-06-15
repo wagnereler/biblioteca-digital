@@ -1,0 +1,20 @@
+server {
+  listen       ${PORT};
+  server_name  localhost;
+
+  root   /usr/share/nginx/html;
+  index  index.html;
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+
+  # proxy /api para backend
+  location /api/ {
+    proxy_pass         http://api:${API_PORT}/api/;
+    proxy_http_version 1.1;
+    proxy_set_header   Upgrade $http_upgrade;
+    proxy_set_header   Connection keep-alive;
+    proxy_set_header   Host $host;
+  }
+}
