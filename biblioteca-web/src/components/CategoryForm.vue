@@ -1,75 +1,115 @@
 <!-- src/components/CategoryForm.vue -->
 <template>
-  <form @submit.prevent="onSubmit" class="category-form">
+  <div class="form-inline">
+    <!-- 1) Criação / Edição -->
     <input
         v-model="name"
         type="text"
         placeholder="Descrição da Categoria"
-        required
+        class="form-input"
     />
-    <button type="submit">
-      {{ modelValue ? 'Atualizar Categoria' : 'Criar Categoria' }}
+    <button
+        type="button"
+        class="btn"
+        :disabled="disableSubmit"
+        @click="onSubmit"
+    >
+      {{ isEditing ? 'Atualizar' : 'Criar Categoria' }}
     </button>
-  </form>
+
+    <!-- 2) Pesquisa -->
+    <input
+        v-model="searchName"
+        type="text"
+        placeholder="Pesquisar por nome"
+        class="form-input"
+    />
+    <button
+        type="button"
+        class="btn"
+        :disabled="!searchName.trim()"
+        @click="onSearch"
+    >
+      Pesquisar
+    </button>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import type { CategoryDto } from '@/types'
 import { createCategory, updateCategory } from '@/services/api'
 
-/** recebe o objeto a editar (v-model) */
+// Props / Emits
 const props = defineProps<{ modelValue?: CategoryDto }>()
+const emit  = defineEmits(['update:modelValue','saved','search'])
 
-/**
- * avisa o parent que salvou
- * e também reseta o modelValue
- */
-const emit = defineEmits([
-  'update:modelValue',
-  'saved'
-])
+// Estados internos
+const name       = ref<string>('')
+const searchName = ref<string>('')
 
-const name = ref('')
+// Sinaliza se estamos editando um registro existente
+const isEditing = computed(() => !!props.modelValue)
 
+// Não permite enviar quando o campo estiver vazio
+const disableSubmit = computed(() => !name.value.trim())
+
+// Sincroniza o formulário quando vem um modelValue do pai
 watch(
     () => props.modelValue,
     cat => {
-      name.value = cat?.name || ''
+      name.value = cat?.name ?? ''
     },
     { immediate: true }
 )
 
 async function onSubmit() {
-  if (props.modelValue) {
-    await updateCategory(props.modelValue.id, { name: name.value })
+  const trimmed = name.value.trim()
+  if (!trimmed) return  // impede envio vazio
+
+  if (isEditing.value && props.modelValue) {
+    await updateCategory(props.modelValue.id, { name: trimmed })
   } else {
-    await createCategory({ name: name.value })
+    await createCategory({ name: trimmed })
   }
-  // dispara evento de sucesso e limpa seleção
+
+  // limpa e notifica o pai
+  name.value = ''
   emit('saved')
   emit('update:modelValue', undefined)
-  name.value = ''
+}
+
+function onSearch() {
+  const trimmed = searchName.value.trim()
+  if (!trimmed) return
+  emit('search', trimmed)
 }
 </script>
 
 <style scoped>
-
-.category-form {
+.form-inline {
   display: flex;
-  align-items: flex-start;
+  align-items: center;    /* agora todos no mesmo nível vertical */
   gap: 0.5rem;
+  flex-wrap: wrap;
   width: 100%;
+  margin-bottom: 1rem;
 }
-.category-form input {
-  flex: 1;
-  min-width: 0;
+.form-input {
+  flex: 1;               /* cresce para preencher o espaço */
+  min-width: 200px;
   padding: 0.5rem;
-  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
-.category-form button {
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
+.btn {
+  padding: 0.5rem 0.8rem;
+  border: 1px solid #333;
+  background: #fff;
+  cursor: pointer;
 }
-
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 </style>

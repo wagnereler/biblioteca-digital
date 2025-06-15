@@ -1,18 +1,12 @@
-<!--src/App.vue-->
+<!-- src/App.vue -->
 <template>
-  <div class="container">
-    <router-view />
+  <div id="app" class="page-container">
+    <router-view/>
   </div>
 </template>
 
 <script setup lang="ts">
-// nada além do router-view
+// não precisa de nada especial aqui
 </script>
 
-<style scoped>
-.container {
-  padding: 1rem;
-  max-width: 800px;
-  margin: auto;
-}
-</style>
+<!-- não use style scoped aqui -->

@@ -1,36 +1,26 @@
 <!-- src/views/CategoriesView.vue -->
 <template>
   <section class="categories-view">
-    <!-- 1) Cabeçalho -->
-    <h1>Categorias</h1>
+    <!-- 1) Título -->
+    <h2>Categorias</h2>
 
-    <!-- 2) Área de criação + pesquisa -->
-    <div class="top-controls">
-      <!-- 2.1) Formulário de criar/editar -->
-      <CategoryForm
-          v-model="editingCategory"
-          @saved="onSaved"
-      />
-
-      <!-- 2.2) Campo de pesquisa + botão -->
-      <div class="search-container">
-        <input
-            v-model="filter"
-            type="text"
-            placeholder="Nome da categoria"
-        />
-        <button @click="onSearch">Pesquisar</button>
-      </div>
-    </div>
+    <!-- 2) Formulário + pesquisa (já concentrado no CategoryForm) -->
+    <CategoryForm
+        v-model="editingCategory"
+        @saved="onSaved"
+        @search="onFilter"
+    />
 
     <!-- 3) Controles de paginação -->
     <div class="controls">
       <div class="page-size">
         <label>Itens por página:</label>
-        <select v-model.number="pageSize" @change="reload">
-          <option v-for="opt in pageSizeOptions" :key="opt" :value="opt">
-            {{ opt }}
-          </option>
+        <select v-model.number="pageSize" @change="loadCategories">
+          <option
+              v-for="opt in pageSizeOptions"
+              :key="opt"
+              :value="opt"
+          >{{ opt }}</option>
         </select>
       </div>
       <div class="page-info">
@@ -48,23 +38,26 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="cat in paginated" :key="cat.id">
+      <tr v-for="cat in paginatedCategories" :key="cat.id">
         <td class="col-description">{{ cat.name }}</td>
         <td class="col-id">{{ cat.id }}</td>
         <td class="col-actions">
-          <button @click="edit(cat)" title="Editar">✏️</button>
+          <button @click="edit(cat)"   title="Editar">✏️</button>
           <button @click="remove(cat.id)" title="Excluir">🗑️</button>
         </td>
       </tr>
       </tbody>
     </table>
 
-    <!-- 5) Navegação -->
+    <!-- 5) Pager à esquerda-->
     <div class="pager">
-      <button :disabled="currentPage === 0" @click="prev">‹ Anterior</button>
+      <button
+          :disabled="currentPage === 0"
+          @click="prevPage"
+      >‹ Anterior</button>
       <button
           :disabled="currentPage >= totalPages - 1"
-          @click="next"
+          @click="nextPage"
       >Próximo ›</button>
     </div>
   </section>
@@ -76,110 +69,81 @@ import CategoryForm from '@/components/CategoryForm.vue'
 import type { CategoryDto } from '@/types'
 import { getCategories, deleteCategory } from '@/services/api'
 
-// estado global
-const all = ref<CategoryDto[]>([])
+const allCategories   = ref<CategoryDto[]>([])
 const editingCategory = ref<CategoryDto|undefined>()
-const filter = ref('')
+const filterName      = ref<string>('')
 
-// paginação
+// PAGINAÇÃO
 const pageSizeOptions = [10, 20, 50]
-const pageSize = ref(10)
-const currentPage = ref(0)
+const pageSize        = ref<number>(10)
+const currentPage     = ref<number>(0)
 
 const totalPages = computed(() =>
-    Math.ceil(all.value.length / pageSize.value)
+    Math.ceil(allCategories.value.length / pageSize.value)
 )
 
-const paginated = computed(() => {
+const paginatedCategories = computed(() => {
   const start = currentPage.value * pageSize.value
-  return all.value.slice(start, start + pageSize.value)
+  return allCategories.value.slice(start, start + pageSize.value)
 })
 
-// dispara a busca consultando o back (com filtro opcional)
-async function reload() {
-  all.value = await getCategories(
-      filter.value.trim() || undefined
-  )
-  // ajusta página caso seja maior que o total
+async function loadCategories() {
+  allCategories.value =
+      await getCategories(filterName.value || undefined)
+  // reajusta página se ultrapassar
   if (currentPage.value >= totalPages.value) {
     currentPage.value = Math.max(0, totalPages.value - 1)
   }
 }
 
-// busca ao clicar
-function onSearch() {
-  currentPage.value = 0
-  reload()
-}
-
-// após salvar no form, recarrega
 function onSaved() {
-  reload()
+  loadCategories()
   editingCategory.value = undefined
 }
 
-// editar
+function onFilter(name: string) {
+  filterName.value   = name
+  currentPage.value  = 0
+  loadCategories()
+}
+
 function edit(cat: CategoryDto) {
   editingCategory.value = cat
 }
 
-// excluir com confirmação
 async function remove(id: string) {
-  if (!confirm('Deseja realmente excluir?')) return
+  if (!confirm('Ao excluir uma categoria você excluirá todos os livros relacionados! \nDeseja realmente excluir esta categoria?')) return
   await deleteCategory(id)
-  reload()
+  loadCategories()
 }
 
-// pager
-function prev() { if (currentPage.value > 0) currentPage.value-- }
-function next() { if (currentPage.value < totalPages.value - 1) currentPage.value++ }
+function prevPage() { if (currentPage.value > 0) currentPage.value-- }
+function nextPage() { if (currentPage.value < totalPages.value - 1) currentPage.value++ }
 
-onMounted(reload)
+onMounted(loadCategories)
 </script>
 
 <style scoped>
 .categories-view {
-  max-width: 900px;
+  width: 80vw;     /* 80% da viewport */
   margin: 0 auto;
   padding: 1rem;
-  display: flex;
-  flex-direction: column;
 }
 h1 {
   text-align: center;
   margin-bottom: 1rem;
 }
-/* 2) top-controls com Criar+Pesquisar */
-.top-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-.search-container {
-  display: flex;
-  gap: 0.5rem;
-}
-.search-container input {
-  padding: 0.5rem;
-  font-size: 1rem;
-  width: 200px;
-}
-.search-container button {
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-}
-
-/* 3) controls */
+/* controles (já no form) */
 .controls {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 0.5rem;
 }
-
-/* 4) tabela fixa */
+.page-size label {
+  margin-right: 0.5rem;
+}
+/* tabela sem scroll interno */
 .categories-table {
   width: 100%;
   border-collapse: collapse;
@@ -192,19 +156,17 @@ h1 {
   vertical-align: top;
   word-break: break-word;
 }
-.col-description { width: 40%; }
-.col-id          { width: 45%; }
+.col-description { width: 60%; }
+.col-id          { width: 25%; }
 .col-actions     { width: 15%; text-align: center; }
 .col-actions button {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1.2rem;
   margin: 0 0.25rem;
-  vertical-align: middle;
+  font-size: 1.2rem;
 }
-
-/* 5) pager left */
+/* pager à esquerda */
 .pager {
   display: flex;
   gap: 0.5rem;
@@ -215,6 +177,7 @@ h1 {
   padding: 0.4rem 0.8rem;
   border: 1px solid #ccc;
   background: #fff;
+  cursor: pointer;
 }
 .pager button:disabled {
   opacity: 0.5;
