@@ -1,12 +1,19 @@
 services:
-  biblioteca-api:
+  api:
+    container_name: biblioteca-api
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: biblioteca-api
-    ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
     env_file:
       - .env
-      - .env-local
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    volumes:
+      - ./data:/app/data
     restart: unless-stopped
+    networks:
+      - biblioteca-network
+
+networks:
+  biblioteca-network:
+    external: true
