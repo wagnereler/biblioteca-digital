@@ -18,9 +18,20 @@ public class MemberResource {
         this.service = service;
     }
 
+    /**
+     * GET /api/v1/members
+     *   ?name=xxx        — busca name LIKE xxx
+     *   &registration=5  — busca registration == 5
+     * Se nenhum parâmetro, retorna todos.
+     */
     @GetMapping
-    public ResponseEntity<List<MemberDto>> list() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<MemberDto>> list(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Integer registration
+    ) {
+        return ResponseEntity.ok(
+                service.findAll(name, registration)
+        );
     }
 
     @GetMapping("/{id}")

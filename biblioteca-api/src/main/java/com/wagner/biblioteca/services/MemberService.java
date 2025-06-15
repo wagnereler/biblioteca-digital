@@ -4,9 +4,9 @@ import com.wagner.biblioteca.domain.Member;
 import com.wagner.biblioteca.dto.MemberDto;
 import com.wagner.biblioteca.repositories.MemberRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,8 +18,25 @@ public class MemberService {
         this.repo = repo;
     }
 
-    public List<MemberDto> findAll() {
-        return repo.findAll().stream()
+    /**
+     * Se vier name e/ou registration, aplica os filtros (união dos resultados);
+     * caso contrário, retorna todos.
+     */
+    public List<MemberDto> findAll(String name, Integer registration) {
+        Set<Member> results = new LinkedHashSet<>();
+
+        if (StringUtils.hasText(name)) {
+            results.addAll(repo.findByNameContainingIgnoreCase(name));
+        }
+        if (registration != null) {
+            results.addAll(repo.findByRegistration(registration));
+        }
+        // sem filtros, pega todos
+        if (!StringUtils.hasText(name) && registration == null) {
+            results.addAll(repo.findAll());
+        }
+
+        return results.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
@@ -31,7 +48,6 @@ public class MemberService {
     }
 
     public MemberDto create(MemberDto dto) {
-        // monta a entidade a partir do DTO (id e registration ficam nulos)
         Member member = Member.builder()
                 .name(dto.getName())
                 .email(dto.getEmail())
@@ -61,8 +77,6 @@ public class MemberService {
                 })
                 .orElse(false);
     }
-
-    // --- helpers de mapeamento ---
 
     private MemberDto toDto(Member m) {
         return new MemberDto(
