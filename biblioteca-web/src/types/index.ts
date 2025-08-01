@@ -25,3 +25,32 @@ export interface BookCreateDto {
     category: { id: string }
 }
 
+export interface MemberDto {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    registration: number;
+}
+
+export interface MemberCreateDto {
+    name: string;
+    email: string;
+    phone?: string;
+}
+
+export interface LoanDto {
+    id: string;
+    loanDate: string;
+    dueDate: string;
+    returnDate?: string;
+    status: string;
+    member: MemberDto;
+    book: BookDto;
+}
+
+export interface CreateLoanDto {
+    memberId: string;
+    bookId: string;
+}
+
