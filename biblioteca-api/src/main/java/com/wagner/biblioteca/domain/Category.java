@@ -1,6 +1,6 @@
 package com.wagner.biblioteca.domain;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,22 +23,18 @@ public class Category implements Serializable {
     @Include
     @Id
     @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID",
-            strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(updatable = false, nullable = false,
-            columnDefinition = "VARCHAR(36)")
+    @GenericGenerator(
+            name = "UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
+    @Column(updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
     private UUID id;
 
     @Column(nullable = false)
     private String name;
 
-    /**
-     * 1 → N com Book
-     * “Managed” do ciclo category↔book
-     */
-    @OneToMany(mappedBy = "category",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true)
-    @JsonManagedReference(value = "category-books")
+
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference(value = "category-books")
     private List<Book> books = new ArrayList<>();
 }

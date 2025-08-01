@@ -24,10 +24,11 @@ public class Book implements Serializable {
     @Include
     @Id
     @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID",
-            strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(updatable = false, nullable = false,
-            columnDefinition = "VARCHAR(36)")
+    @GenericGenerator(
+            name = "UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
+    @Column(updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
     private UUID id;
 
     @Column(nullable = false)
@@ -39,25 +40,22 @@ public class Book implements Serializable {
     @Column(unique = true)
     private String isbn;
 
-    @Column(name="available_copies", nullable = false)
+    @Column(name = "available_copies", nullable = false)
     private int availableCopies;
 
     /**
      * N → 1 com Category
-     * “Back” do ciclo category↔book
+     * “Managed” do ciclo category↔book: será incluído no JSON de Book
      */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
-    @JsonBackReference(value = "category-books")
+    @JsonManagedReference(value = "category-books")
     private Category category;
 
     /**
-     * 1 → N com Loan
-     * segue o mesmo padrão book↔loan que vocês já tinham
+     * 1 → N com Loan – permanece back, omitido no JSON para não recursar
      */
-    @OneToMany(mappedBy = "book",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true)
-    @JsonManagedReference(value = "book-loans")
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference(value = "book-loans")
     private List<Loan> loans = new ArrayList<>();
 }
