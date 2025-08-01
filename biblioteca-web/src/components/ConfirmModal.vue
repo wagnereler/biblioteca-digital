@@ -1,85 +1,95 @@
+<!-- src/components/ConfirmModal.vue -->
 <template>
-  <teleport to="body">
-    <div v-if="visible" class="modal-backdrop" @click.self="onCancel">
-      <div class="modal-container">
+  <Teleport to="body">
+    <div v-if="visible" class="modal-overlay">
+      <div class="modal-box">
         <header class="modal-header">
           <h3>{{ title }}</h3>
         </header>
-        <section class="modal-body">
+        <div class="modal-body">
           <p>{{ message }}</p>
-        </section>
+        </div>
         <footer class="modal-footer">
-          <button class="btn cancel" @click="onCancel">{{ cancelText }}</button>
-          <button class="btn confirm" @click="onConfirm">{{ confirmText }}</button>
+          <button class="btn btn-cancel" @click="$emit('cancel')">
+            {{ cancelText }}
+          </button>
+          <button class="btn btn-confirm" @click="$emit('confirm')">
+            {{ confirmText }}
+          </button>
         </footer>
       </div>
     </div>
-  </teleport>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-
-
-const props = defineProps<{
-  visible: boolean
-  title?: string
-  message: string
-  confirmText?: string
-  cancelText?: string
-}>()
-
-const emit = defineEmits<{
-  (e: 'confirm'): void
-  (e: 'cancel'): void
-}>()
-
-const onConfirm = () => emit('confirm')
-const onCancel  = () => emit('cancel')
+const props = defineProps({
+  visible:     { type: Boolean, required: true },
+  title:       { type: String,  default: ''     },
+  message:     { type: String,  default: ''     },
+  confirmText: { type: String,  default: 'OK'   },
+  cancelText:  { type: String,  default: 'Cancelar' },
+})
 </script>
 
 <style scoped>
-.modal-backdrop {
+.modal-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
-.modal-container {
-  background: white;
-  border-radius: 4px;
+.modal-box {
+  background: #fff;
+  border-radius: 6px;
   width: 90%;
   max-width: 400px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
   overflow: hidden;
 }
 .modal-header {
   padding: 1rem;
   border-bottom: 1px solid #eee;
 }
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
 .modal-body {
   padding: 1rem;
 }
 .modal-footer {
-  padding: 0.75rem;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  text-align: right;
   border-top: 1px solid #eee;
 }
 .btn {
-  padding: 0.5rem 0.75rem;
-  border: none;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid #333;
+  background: #fff;
   cursor: pointer;
   border-radius: 4px;
+  font-size: 0.9rem;
 }
-.btn.cancel {
-  background: #f0f0f0;
+.btn + .btn {
+  margin-left: 0.5rem;
 }
-.btn.confirm {
-  background: #d9534f;
-  color: white;
+.btn-cancel {
+  /* cancelar pode ficar neutro */
+}
+.btn-confirm {
+  background-color: #dc3545;
+  color: #fff;
+  border-color: #dc3545;
+}
+.btn-confirm:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
 }
 </style>

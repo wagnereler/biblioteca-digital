@@ -1,7 +1,6 @@
-<!-- src/components/CategoryForm.vue -->
+<!--src/components/CategoryForm.vue-->
 <template>
   <div class="form-inline">
-    <!-- 1) Criação / Edição -->
     <input
         v-model="name"
         type="text"
@@ -17,7 +16,6 @@
       {{ isEditing ? 'Atualizar' : 'Criar Categoria' }}
     </button>
 
-    <!-- 2) Pesquisa -->
     <input
         v-model="searchName"
         type="text"
@@ -38,34 +36,24 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import type { CategoryDto } from '@/types'
-import { createCategory, updateCategory } from '@/services/api'
+import { getCategories, createCategory, updateCategory } from '@/services/api'
 
-// Props / Emits
 const props = defineProps<{ modelValue?: CategoryDto }>()
-const emit  = defineEmits(['update:modelValue','saved','search'])
+const emit  = defineEmits(['update:modelValue','saved','search'] as const)
 
-// Estados internos
-const name       = ref<string>('')
-const searchName = ref<string>('')
+const name       = ref('')
+const searchName = ref('')
 
-// Sinaliza se estamos editando um registro existente
 const isEditing = computed(() => !!props.modelValue)
-
-// Não permite enviar quando o campo estiver vazio
 const disableSubmit = computed(() => !name.value.trim())
 
-// Sincroniza o formulário quando vem um modelValue do pai
-watch(
-    () => props.modelValue,
-    cat => {
-      name.value = cat?.name ?? ''
-    },
-    { immediate: true }
-)
+watch(() => props.modelValue, cat => {
+  name.value = cat?.name ?? ''
+}, { immediate: true })
 
 async function onSubmit() {
   const trimmed = name.value.trim()
-  if (!trimmed) return  // impede envio vazio
+  if (!trimmed) return
 
   if (isEditing.value && props.modelValue) {
     await updateCategory(props.modelValue.id, { name: trimmed })
@@ -73,7 +61,6 @@ async function onSubmit() {
     await createCategory({ name: trimmed })
   }
 
-  // limpa e notifica o pai
   name.value = ''
   emit('saved')
   emit('update:modelValue', undefined)
@@ -89,14 +76,14 @@ function onSearch() {
 <style scoped>
 .form-inline {
   display: flex;
-  align-items: center;    /* agora todos no mesmo nível vertical */
+  align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
   width: 100%;
   margin-bottom: 1rem;
 }
 .form-input {
-  flex: 1;               /* cresce para preencher o espaço */
+  flex: 1;
   min-width: 200px;
   padding: 0.5rem;
   border: 1px solid #ccc;
